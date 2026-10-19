@@ -1,315 +1,104 @@
+<div align="center">
 
-# E-commerce Backend API
+# 🛒 E-commerce Backend API
+### API REST para gerenciamento de produtos e categorias
 
-API REST para gerenciamento de categorias e produtos, construída com Node.js 18+, TypeScript, Express, Prisma ORM e PostgreSQL.
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-## Tecnologias
+</div>
 
-Node.js 18+ · TypeScript · Express · Prisma ORM · PostgreSQL · Zod · Vitest + Supertest · Swagger/OpenAPI · Docker Compose
+## 🎯 Visão geral
 
-## Arquitetura
+API para **gestão de catálogo de produtos e categorias**, com TypeScript, Express, Prisma e PostgreSQL. Demonstra organização de backend em camadas, validação de entradas, regras de negócio, documentação OpenAPI e testes de integração com banco separado.
 
-O projeto segue uma arquitetura em camadas:
+## ✨ Recursos
 
-`routes` → `controllers` → `services` → `repositories`
+| Recurso | Comportamento |
+|---|---|
+| 📦 Produtos | Cadastro, consulta, alteração, remoção lógica e filtros |
+| 🗂️ Categorias | Gestão e restrição de exclusão quando há produtos ativos |
+| ✅ Validações | Dados validados com Zod; valores de preço e estoque consistentes |
+| 🧾 Soft delete | Registros removidos logicamente são ocultados de consultas comuns |
+| 🔎 Listagens | Paginação e filtros por atributos do catálogo |
+| 🧪 Testes | Vitest/Supertest contra PostgreSQL de teste |
+| 📚 API | Swagger/OpenAPI disponível durante a execução |
 
-As validações são feitas com Zod em `schemas`, e o tratamento de erros é centralizado em `middlewares`.
+## 🏗️ Arquitetura
 
-O `repository` é o único ponto de acesso direto ao Prisma.
+```mermaid
+flowchart TD
+A["Cliente HTTP"] --> B["Express • Routes"]
+B --> C["Controllers"]
+C --> D["Services • Regras"]
+D --> E["Repositories • Prisma"]
+E --> F[("PostgreSQL")]
+C --> G["Schemas • Zod"]
+```
 
-## Regras de negócio
+**Organização:** `src/modules/` contém o domínio, enquanto `src/middlewares/`, `src/errors/`, `src/database/` e `src/config/` centralizam infraestrutura e responsabilidades comuns.
 
-- Categoria possui nome obrigatório e único.
-- Produto possui preço maior que zero.
-- Produto possui estoque inteiro e não negativo.
-- Produto deve estar vinculado a uma categoria existente.
-- Categoria com produtos ativos vinculados não pode ser excluída.
-- A exclusão é feita com soft delete.
-- Registros com `deletedAt` preenchido são ignorados em listagens e buscas comuns.
+## 🚀 Executar com Docker
 
----
-
-## Como rodar
-
-### Opção A: Docker
-
-Forma recomendada para executar o projeto.
+Requer Docker e plugin Compose:
 
 ```bash
+git clone https://github.com/WalterMatheusgg/ecomerce.git
+cd ecomerce
 cp .env.example .env
 docker compose up --build
-````
-
-Esse comando sobe:
-
-* API
-* PostgreSQL de desenvolvimento
-* PostgreSQL de teste
-* migrations do Prisma
-* aplicação em modo desenvolvimento
-
-A API ficará disponível em:
-
-```txt
-http://localhost:3000
 ```
 
-Swagger:
+Configure os valores de `.env` de forma **local**. Por padrão, a documentação do projeto indica:
 
-```txt
-http://localhost:3000/docs/
-```
+- API: http://localhost:3000
+- Swagger: http://localhost:3000/docs/
 
-Para parar os containers:
+Não execute `docker compose down -v` caso precise preservar os volumes.
 
-```bash
-docker compose down
-```
+## 🧪 Testes de integração
 
-Para parar os containers e apagar os volumes do banco:
-
-```bash
-docker compose down -v
-```
-
----
-
-### Opção B: Local sem Docker
-
-Pré-requisitos:
-
-* Node.js 18+
-* PostgreSQL rodando localmente
-* Banco `ecommerce` criado no PostgreSQL
-
-Instale as dependências:
-
-```bash
-npm install
-```
-
-Crie o arquivo de ambiente:
-
-```bash
-cp .env.example .env
-```
-
-Ajuste a `DATABASE_URL` no `.env`, se necessário:
-
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ecommerce?schema=public
-```
-
-Se o banco ainda não existir, crie com:
-
-```bash
-createdb ecommerce
-```
-
-Gere o Prisma Client:
-
-```bash
-npm run prisma:generate
-```
-
-Aplique as migrations:
-
-```bash
-npm run prisma:migrate
-```
-
-Inicie a aplicação:
-
-```bash
-npm run dev
-```
-
-A API ficará disponível em:
-
-```txt
-http://localhost:3000
-```
-
----
-
-## Migrations
-
-As migrations já estão versionadas em `prisma/migrations`.
-
-Para aplicar migrations existentes:
-
-```bash
-npm run prisma:migrate
-```
-
-Para criar/aplicar migrations durante desenvolvimento:
-
-```bash
-npm run prisma:migrate:dev
-```
-
-Para gerar o Prisma Client:
-
-```bash
-npm run prisma:generate
-```
-
----
-
-## Testes
-
-Os testes de integração rodam contra um PostgreSQL real, isolado do banco de desenvolvimento.
-
-Banco de teste:
-
-```txt
-ecommerce_test
-```
-
-Porta:
-
-```txt
-5433
-```
-
-Crie o arquivo `.env.test`:
+Os testes são configurados para um PostgreSQL separado do banco de desenvolvimento:
 
 ```bash
 cp .env.test.example .env.test
-```
-
-Suba o banco de teste:
-
-```bash
 docker compose up -d db-test
-```
-
-Aplique as migrations no banco de teste:
-
-```bash
+npm ci
+npm run prisma:generate
 npm run prisma:migrate:test
-```
-
-Execute os testes de integração:
-
-```bash
 npm run test:integration
 ```
 
-O código de teste recusa rodar caso a `DATABASE_URL` não aponte para um banco de teste. Essa proteção evita sobrescrever ou limpar dados do banco de desenvolvimento por engano.
+**Atenção:** revise as URLs em `.env` e `.env.test`. Execute a suíte somente contra banco de teste; a verificação automatizada do projeto recusa um destino inadequado.
 
----
+## 📡 Endpoints principais
 
-## Endpoints
+| Método | Rota | Finalidade |
+|---|---|---|
+| GET/POST | `/categories` | Listar e cadastrar categorias |
+| GET/PUT/DELETE | `/categories/:id` | Consultar, alterar e remover |
+| GET/POST | `/products` | Listar, filtrar e cadastrar produtos |
+| GET/PUT/DELETE | `/products/:id` | Consultar, alterar e remover |
 
-### Categories
-
-* `POST /categories`
-* `GET /categories?page=&limit=`
-* `GET /categories/:id`
-* `PUT /categories/:id`
-* `DELETE /categories/:id`
-
-### Products
-
-* `POST /products`
-* `GET /products?page=&limit=&categoryId=&priceMin=&priceMax=&name=`
-* `GET /products/:id`
-* `PUT /products/:id`
-* `DELETE /products/:id`
-
----
-
-## Exemplos de chamadas
-
-### Criar categoria
+Exemplo:
 
 ```bash
 curl -X POST http://localhost:3000/categories \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Electronics"}'
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Eletrônicos"}'
 ```
 
-### Criar produto
+## 🔒 Qualidade e operação
 
-Substitua `<category-id>` pelo ID de uma categoria existente.
+- Não versionar `.env` ou `.env.test` com credenciais.
+- Manter banco de desenvolvimento e testes isolados.
+- Validar build, migrações e suíte antes de implantar externamente.
+- Documentação e estrutura não equivalem a homologação de produção.
 
-```bash
-curl -X POST http://localhost:3000/products \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Laptop",
-    "price": 999.99,
-    "stock": 10,
-    "categoryId": "<category-id>"
-  }'
-```
+## 👨‍💻 Autor
 
-### Listar produtos com filtros
-
-```bash
-curl "http://localhost:3000/products?page=1&limit=10&name=lap&priceMin=100&priceMax=2000"
-```
-
----
-
-## Scripts disponíveis
-
-Iniciar a aplicação em desenvolvimento:
-
-```bash
-npm run dev
-```
-
-Compilar o projeto TypeScript:
-
-```bash
-npm run build
-```
-
-Iniciar a versão compilada:
-
-```bash
-npm start
-```
-
-Gerar Prisma Client:
-
-```bash
-npm run prisma:generate
-```
-
-Aplicar migrations existentes:
-
-```bash
-npm run prisma:migrate
-```
-
-Criar/aplicar migrations em desenvolvimento:
-
-```bash
-npm run prisma:migrate:dev
-```
-
-Aplicar migrations no banco de teste:
-
-```bash
-npm run prisma:migrate:test
-```
-
-Executar testes de integração:
-
-```bash
-npm run test:integration
-```
-
----
-
-## Observações
-
-* O arquivo `.env` real não é commitado.
-* O arquivo `.env.test` real não é commitado.
-* Apenas `.env.example` e `.env.test.example` devem estar no repositório.
-* Os testes usam PostgreSQL real, sem mock do Prisma.
-* O banco de teste é separado do banco de desenvolvimento.
-* O projeto utiliza soft delete com `deletedAt`.
+**Walter Matheus Soares da Silva** · [GitHub](https://github.com/WalterMatheusgg)  
+Confira também o [NEXUS CRM — Java, Spring Boot e Angular](https://github.com/WalterMatheusgg/NEXUS).
