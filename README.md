@@ -46,8 +46,8 @@ C --> G["Schemas • Zod"]
 Requer Docker e plugin Compose:
 
 ```bash
-git clone https://github.com/WalterMatheusgg/ecomerce.git
-cd ecomerce
+git clone https://github.com/WalterMatheusgg/vitrine-digital-api.git
+cd vitrine-digital-api
 cp .env.example .env
 docker compose up --build
 ```
